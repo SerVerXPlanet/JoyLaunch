@@ -24,6 +24,15 @@ _v.1.0.0.0_
 
 &nbsp;
 
+### How to compile
+
+- git clone https://github.com/SerVerXPlanet/JoyLaunch.git
+- cd JoyLaunch
+- %windir%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe JoyLaunch.sln /property:Configuration=Release
+- cd JoyLaunch\bin\Release
+
+&nbsp;
+
 ### License
 [MIT](https://github.com/git/git-scm.com/blob/main/MIT-LICENSE.txt)
 
