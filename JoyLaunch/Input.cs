@@ -2,18 +2,17 @@
  * Created by SharpDevelop.
  * User: SerVer
  * Date: 25.11.2020
- * Time: 15:59
- * 
- * To change this template use Tools | Options | Coding | Edit Standard Headers.
+ * Time: 19:59
  */
 using System;
 using System.Drawing;
 using System.Windows.Forms;
 
+
 namespace JoyLaunch
 {
 	/// <summary>
-	/// Description of Find.
+	/// Description of Input.
 	/// </summary>
 	public partial class Input : Form
 	{
@@ -28,8 +27,8 @@ namespace JoyLaunch
 		{
 			InitializeComponent();
 			
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(NotificationIcon));
-			this.Icon = (Icon)resources.GetObject("$this.Icon");
+			var resources = new System.ComponentModel.ComponentResourceManager(typeof(NotificationIcon));
+			this.Icon = (Icon)resources.GetObject("Joystick");
 		}
 		
 		

@@ -2,12 +2,11 @@
  * Создано в SharpDevelop.
  * Пользователь: SerVer
  * Дата: 20.07.2016
- * Время: 13:12
- * 
- * Для изменения этого шаблона используйте меню "Инструменты | Параметры | Кодирование | Стандартные заголовки".
- */
+ * Время: 18:12
+  */
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -19,210 +18,286 @@ using System.Text;
 
 namespace JoyLaunch
 {
-	public sealed class NotificationIcon
-	{
-		#region Variables
-		
-		NotifyIcon notifyIcon;
-		ContextMenu notificationLeftMenu;
-		ContextMenu notificationRightMenu;
-		
-		Dictionary<string,GameInfo> games = new Dictionary<string,GameInfo>();
-		
-		#endregion Variables
-		
-		
-		
-		
-		#region Initialize icon and menu
-		
-		public NotificationIcon()
-		{
-			string settings = Properties.Settings.Default.list_of_games;
-			games = DeserializeGameList(settings);
-			
-			notifyIcon = new NotifyIcon();
-			notificationLeftMenu	= new ContextMenu(InitializeLeftMenu());
-			notificationRightMenu	= new ContextMenu(InitializeRightMenu());
-			
-			notifyIcon.ContextMenu = notificationRightMenu;
-			
-			//notifyIcon.Click += IconClick;
-			notifyIcon.MouseClick += new MouseEventHandler(this.IconClick);
-			
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(NotificationIcon));
-			notifyIcon.Icon = (Icon)resources.GetObject("$this.Icon");
-			
-		}
-		
-		
-		MenuItem[] InitializeLeftMenu()
-		{
-			MenuItem[] menu = new MenuItem[games.Count];
-			
-			int i = 0;
-			
-			foreach(var game in games)
-			{
-				menu[i] = new MenuItem(game.Value.Name, menuGameClick);
-				i++;
-			}
-			
-			return menu;
-		}
-		
-		
-		MenuItem[] InitializeRightMenu()
-		{
-			MenuItem[] menu = new MenuItem[] {
-				new MenuItem("Settings"	, menuSettingsClick),
-				new MenuItem("Exit"		, menuExitClick)
-			};
-			
-			return menu;
-		}
-		
-		#endregion
-		
-		
-		
-		
-		#region Main - Program entry point
-		/// <summary>Program entry point.</summary>
-		/// <param name="args">Command Line Arguments</param>
-		[STAThread]
-		public static void Main(string[] args)
-		{
-			Application.EnableVisualStyles();
-			Application.SetCompatibleTextRenderingDefault(false);
-			
-			bool isFirstInstance;
-			
-			// Please use a unique name for the mutex to prevent conflicts with other programs
-			using (Mutex mtx = new Mutex(true, "JoyLaunch", out isFirstInstance))
-			{
-				if (isFirstInstance)
-				{
-					NotificationIcon notificationIcon = new NotificationIcon();
-					notificationIcon.notifyIcon.Visible = true;
-					Application.Run();
-					notificationIcon.notifyIcon.Dispose();
-				}
-				else
-				{
-					// The application is already running
-					// TODO: Display message box or change focus to existing application instance
-				}
-			} // releases the Mutex
-		}
-		
-		#endregion
-		
-		
-		
-		
-		#region Event Handlers
-		
-		void menuSettingsClick(object sender, EventArgs e)
-		{
-			FormSettings formSettings = new FormSettings(games);
-			formSettings.ShowDialog();
-			
-			notificationLeftMenu = new ContextMenu(InitializeLeftMenu());
-			
-			Properties.Settings.Default.list_of_games = SerializeGameList(games);
+    public sealed class NotificationIcon
+    {
+        #region Variables
+        
+        ComponentResourceManager resources = new ComponentResourceManager(typeof(NotificationIcon));
+        
+        NotifyIcon notifyIcon;
+        ContextMenu notificationLeftMenu;
+        ContextMenu notificationRightMenu;
+        
+        Dictionary<string,GameInfo> games = new Dictionary<string,GameInfo>();
+        
+        #endregion Variables
+        
+        
+        
+        
+        #region Initialize icon and menu
+        
+        public NotificationIcon()
+        {
+            string settings = Properties.Settings.Default.list_of_games;
+            games = DeserializeGameList(settings);
+            
+            notifyIcon = new NotifyIcon();
+            notificationLeftMenu    = new ContextMenu(InitializeLeftMenu());
+            notificationRightMenu    = new ContextMenu(InitializeRightMenu());
+            
+            notifyIcon.ContextMenu = notificationRightMenu;
+            
+            //notifyIcon.Click += IconClick;                                  
+            notifyIcon.MouseClick += new MouseEventHandler(this.IconClick);
+            
+            notifyIcon.Icon = (Icon)resources.GetObject("Joystick");
+        }
+        
+        
+        MenuItem[] InitializeLeftMenu()
+        {
+            MenuItem[] menu = new MenuItem[games.Count];
+            
+            int i = 0;
+            
+            foreach(var game in games)
+            {
+                menu[i] = new MenuItem(game.Value.Name, menuGameClick);
+                i++;
+            }
+            
+            return menu;
+        }
+        
+        
+        MenuItem[] InitializeRightMenu()
+        {
+            var menuSettings = new MenuItem("Settings" , menuSettingsClick);
+            menuSettings.OwnerDraw = true;
+            menuSettings.DrawItem += menuSettings_DrawItem;
+            menuSettings.MeasureItem += menuSettings_MeasureItem;
+            
+            var menuExit = new MenuItem("Exit" , menuExitClick);
+            menuExit.OwnerDraw = true;
+            menuExit.DrawItem += menuExit_DrawItem;
+            menuExit.MeasureItem += menuExit_MeasureItem;
+            
+            MenuItem[] menu = new MenuItem[] {
+                menuSettings,
+                new MenuItem("-"),
+                menuExit
+            };
+            
+            return menu;
+        }
+        
+        
+        void menuSettings_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            MenuDrawItem(sender, e);
+        }
+        
+        
+        void menuSettings_MeasureItem(object sender, MeasureItemEventArgs e)
+        {
+            MenuMeasureItem(sender, e);
+        }
+        
+        
+        void menuExit_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            MenuDrawItem(sender, e);
+        }
+        
+        
+        void menuExit_MeasureItem(object sender, MeasureItemEventArgs e)
+        {
+            MenuMeasureItem(sender, e);
+        }
+        
+        
+        void MenuDrawItem(object obj, DrawItemEventArgs diea)
+        {
+            var mi = (MenuItem)obj;
+            var menuFont = SystemInformation.MenuFont;
+            SolidBrush menuBrush = null;
+            
+            menuBrush = !mi.Enabled ? new SolidBrush(SystemColors.GrayText) : (diea.State & DrawItemState.Selected) != 0 ? new SolidBrush(SystemColors.HighlightText) : new SolidBrush(SystemColors.MenuText);
+            
+            var strfmt = new StringFormat();
+            
+            Image menuImage = (Bitmap)resources.GetObject(((MenuItem)obj).Text);
+            
+            Rectangle rectImage = diea.Bounds;
+            int delta = (diea.Bounds.Height - menuImage.Height) / 2;
+            rectImage.X += delta;
+            rectImage.Y += delta;
+            rectImage.Width = menuImage.Width;
+            rectImage.Height = menuImage.Height;
+            
+            Rectangle rectText = diea.Bounds;
+            rectText.X += rectImage.Width;
+            
+            diea.Graphics.FillRectangle((diea.State & DrawItemState.Selected) != 0 ? SystemBrushes.Highlight : SystemBrushes.Menu, diea.Bounds);
+            
+            diea.Graphics.DrawImage(menuImage, rectImage);
+            
+            diea.Graphics.DrawString( mi.Text, menuFont, menuBrush, diea.Bounds.Left + (int)(1.3 * menuImage.Width), diea.Bounds.Top + ((diea.Bounds.Height - menuFont.Height) / 2), strfmt ) ;
+        }
+        
+        
+        void MenuMeasureItem(object obj, MeasureItemEventArgs miea)
+        {
+            var mi = (MenuItem)obj;
+            var menuFont = SystemInformation.MenuFont;
+            var strfmt = new StringFormat();
+            var sizef = miea.Graphics.MeasureString(mi.Text, menuFont, 300, strfmt);
+            Image menuImage = (Bitmap)resources.GetObject(((MenuItem)obj).Text);
+            miea.ItemWidth  = menuImage.Width + (int)Math.Ceiling(sizef.Width);
+            miea.ItemHeight = menuImage.Height + 3;//(int)Math.Ceiling(sizef.Height); // 19 px is standard height
+        }
+        
+        #endregion
+        
+        
+        
+        
+        #region Main - Program entry point
+        /// <summary>Program entry point.</summary>
+        /// <param name="args">Command Line Arguments</param>
+        [STAThread]
+        public static void Main(string[] args)
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            
+            bool isFirstInstance;
+            
+            // Please use a unique name for the mutex to prevent conflicts with other programs
+            using (Mutex mtx = new Mutex(true, "JoyLaunch", out isFirstInstance))
+            {
+                if (isFirstInstance)
+                {
+                    NotificationIcon notificationIcon = new NotificationIcon();
+                    notificationIcon.notifyIcon.Visible = true;
+                    Application.Run();
+                    notificationIcon.notifyIcon.Dispose();
+                }
+                else
+                {
+                    // The application is already running
+                }
+            } // releases the Mutex
+        }
+        
+        #endregion
+        
+        
+        
+        
+        #region Event Handlers
+        
+        void menuSettingsClick(object sender, EventArgs e)
+        {
+            FormSettings formSettings = new FormSettings(games);
+            formSettings.ShowDialog();
+            
+            notificationLeftMenu = new ContextMenu(InitializeLeftMenu());
+            
+            Properties.Settings.Default.list_of_games = SerializeGameList(games);
             Properties.Settings.Default.Save();
-		}
-		
-		
-		void menuExitClick(object sender, EventArgs e)
-		{
-			Application.Exit();
-		}
-		
-		
-		void menuGameClick(object sender, EventArgs e)
-		{
-			var currentGame = games[((MenuItem)sender).Index.ToString()];
-			
-			if(File.Exists(currentGame.Path))
-			{
-				FileInfo fi = new FileInfo(currentGame.Path);
-				
-				ProcessStartInfo psi = new ProcessStartInfo();
-				psi.WorkingDirectory = fi.DirectoryName;
-				psi.FileName = fi.Name;
-				try
-				{
-					Process.Start(psi);
-				}
-				catch
-				{
-					MessageBox.Show("An error occurred while starting the application");
-				}
-			}
-			else
-				MessageBox.Show("File <" + currentGame.Path + "> not found");
-		}
-		
-		
-		void IconClick(object sender, EventArgs e)
-		{
-			MouseEventArgs me = (MouseEventArgs)e;
-						
-			if(me.Button == MouseButtons.Left)
-			{
-				notifyIcon.ContextMenu = notificationLeftMenu;
-				
-				MethodInfo mi = typeof(NotifyIcon).GetMethod("ShowContextMenu", BindingFlags.Instance | BindingFlags.NonPublic);
-        		mi.Invoke(notifyIcon, null);
-				
-        		notifyIcon.ContextMenu = notificationRightMenu;
-			}
-		}
+        }
+        
+        
+        void menuExitClick(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+        
+        
+        void menuGameClick(object sender, EventArgs e)
+        {
+            var currentGame = games[((MenuItem)sender).Index.ToString()];
+            
+            if(File.Exists(currentGame.Path))
+            {
+                FileInfo fi = new FileInfo(currentGame.Path);
+                
+                ProcessStartInfo psi = new ProcessStartInfo();
+                psi.WorkingDirectory = fi.DirectoryName;
+                psi.FileName = fi.Name;
+                try
+                {
+                    Process.Start(psi);
+                }
+                catch
+                {
+                    MessageBox.Show("An error occurred while starting the application");
+                }
+            }
+            else
+                MessageBox.Show(String.Format("File <{0}> not found", currentGame.Path));
+        }
+        
+        
+        void IconClick(object sender, EventArgs e)
+        {
+            MouseEventArgs me = (MouseEventArgs)e;
+                        
+            if(me.Button == MouseButtons.Left)
+            {
+                notifyIcon.ContextMenu = notificationLeftMenu;
+                
+                MethodInfo mi = typeof(NotifyIcon).GetMethod("ShowContextMenu", BindingFlags.Instance | BindingFlags.NonPublic);
+                mi.Invoke(notifyIcon, null);
+                
+                notifyIcon.ContextMenu = notificationRightMenu;
+            }
+        }
 
-		#endregion
-		
-		
-		
-		
-		#region Serialization
-		
-		string SerializeGameList(Dictionary<string,GameInfo> gameList)
-		{
-			StringBuilder result = new StringBuilder();
-			
-			foreach(var game in gameList)
-			{
-				result.Append(game.Key);
-				result.Append(';');
-				result.Append(game.Value.ToString());
-				result.AppendLine();
-			}
-			
-			return result.ToString();
-		}
-		
-		
-		Dictionary<string,GameInfo> DeserializeGameList(string text)
-		{
-			Dictionary<string,GameInfo> gameList = new Dictionary<string, GameInfo>();
-			
-			string[] multiLine = text.Split(new char[] {'\r', '\n', '\t'}, StringSplitOptions.RemoveEmptyEntries);
-			string[] multiStr;
-			
-			foreach(var str in multiLine)
-			{
-				multiStr = str.Split(';');
-				gameList.Add(multiStr[0], new GameInfo(multiStr[1], multiStr[2], multiStr[3]));
-			}
-			
-			return gameList;
-		}
-		
-		#endregion
-		
-		
-	}
-	
+        #endregion
+        
+        
+        
+        
+        #region Serialization
+        
+        string SerializeGameList(Dictionary<string,GameInfo> gameList)
+        {
+            var result = new StringBuilder();
+            
+            foreach(var game in gameList)
+            {
+                result.Append(game.Key);
+                result.Append(';');
+                result.Append(game.Value.ToString());
+                result.AppendLine();
+            }
+            
+            return result.ToString();
+        }
+        
+        
+        Dictionary<string,GameInfo> DeserializeGameList(string text)
+        {
+            var gameList = new Dictionary<string, GameInfo>();
+            var whiteSpaces = new char[] {'\r', '\n', '\t'};
+            string[] multiLine = text.Split(whiteSpaces, StringSplitOptions.RemoveEmptyEntries);
+            string[] multiStr;
+            
+            foreach(var str in multiLine)
+            {
+                multiStr = str.Split(';');
+                gameList.Add(multiStr[0], new GameInfo(multiStr[1], multiStr[2], multiStr[3]));
+            }
+            
+            return gameList;
+        }
+        
+        #endregion
+        
+        
+    }
+    
 }
