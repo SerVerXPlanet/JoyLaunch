@@ -429,7 +429,7 @@ namespace Kaitai
             private WindowsLnkFile m_parent;
             private byte[] __raw_all;
             public uint LenAll { get { return _lenAll; } }
-            public All All { get { return _all; } }
+            public All ALL { get { return _all; } }
             public WindowsLnkFile M_Root { get { return m_root; } }
             public WindowsLnkFile M_Parent { get { return m_parent; } }
             public byte[] M_RawAll { get { return __raw_all; } }

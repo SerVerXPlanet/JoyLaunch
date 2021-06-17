@@ -116,6 +116,8 @@
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="WindowsLnkFile.cs" />
+    <Compile Include="WindowsShellItems.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Input.resx">

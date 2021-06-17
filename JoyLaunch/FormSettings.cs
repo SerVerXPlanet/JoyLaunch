@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using System.Text;
 using Kaitai;
 
 
@@ -33,12 +34,13 @@ namespace JoyLaunch
 			
 			foreach(var game in localGames)
 			{
-				string[] arr = new string[3];
+				string[] arr = new string[4];
 		        arr[0] = game.Value.Logo;
 		        arr[1] = game.Value.Name;
 		        arr[2] = game.Value.Path;
-		        
-		        ListViewItem itm = new ListViewItem(arr);
+				arr[3] = game.Value.Args;
+
+				ListViewItem itm = new ListViewItem(arr);
 		        
 		        lbGames.Items.Add(itm);
 			}
@@ -61,59 +63,100 @@ namespace JoyLaunch
 			foreach (string file in files)
 			{
 				FileInfo fi = new FileInfo(file);
-				
+
+				string args = String.Empty;
+				string icoPath = String.Empty;
+
+
 				if (fi.Extension == ".lnk")
 				{
-					string originalPath = GetFullPathFromLink(fi);
-					fi = new FileInfo(originalPath);
+					string[] originalPathes = GetFullPathesFromLink(fi);
+
+					if (originalPathes[0] != null)
+					{
+						fi = new FileInfo(originalPathes[0]);
+					}
+
+					if (originalPathes[1] != null)
+						args = originalPathes[1];
+
+					if (originalPathes[2] != null)
+						icoPath = originalPathes[2];
 				}
-			
-				string[] arr = new string[3];
-				arr[0] = "-";
+
+				string[] arr = new string[4];
+				arr[0] = (icoPath == String.Empty ? fi.FullName : icoPath);
 				arr[1] = fi.Name.Substring(0, fi.Name.Length - fi.Extension.Length);
 				arr[2] = fi.FullName;
-				
+				arr[3] = args;
+
 				ListViewItem itm = new ListViewItem(arr);
 				
 				lbGames.Items.Add(itm);
 				
-				localGames.Add(localGames.Count.ToString(), new GameInfo(arr[0], arr[1], arr[2]));
+				localGames.Add(localGames.Count.ToString(), new GameInfo(arr[0], arr[1], arr[2], arr[3]));
 			}
 		}
 		
 		
-		string GetFullPathFromLink(FileInfo fi)
+		string[] GetFullPathesFromLink(FileInfo fi)
 		{
 			var data = WindowsLnkFile.FromFile(fi.FullName);
 
+			string appPath = data.RelPath?.Str;
 
-			/*
-			using (var fs = File.Open(fi.FullName, FileMode.Open, FileAccess.Read))
+			if (appPath == null)
+				appPath = data.Name?.Str;
+
+			if (appPath != null)
 			{
-				using (var reader = new BinaryReader(fs))
+				if (appPath.StartsWith("@"))
+					appPath = appPath.TrimStart('@');
+
+				if (appPath.Contains(","))
+					appPath = appPath.Split(',')[0];
+
+				if (appPath.Contains("%"))
+					appPath = Environment.ExpandEnvironmentVariables(appPath);
+
+				if (appPath.Contains("..\\"))
 				{
-					fs.Seek(0x14, SeekOrigin.Begin);
-					UInt32 flags = reader.ReadUInt32();
-					
-					if ((flags & 0x01) == 1)
-					{
-						fs.Seek(0x4C, SeekOrigin.Begin);
-						UInt16 idLength = reader.ReadUInt16();
-						fs.Seek(idLength, SeekOrigin.Current);
+					string[] appParts = appPath.Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+					string[] origParts = fi.FullName.Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+
+					int level = 0;
+
+					while (appParts[level] == "..")
+						level++;
+
+					StringBuilder sb = new StringBuilder();
+
+                    for (int i = 0; i < origParts.Length - level - 1; i++)
+                    {
+						sb.Append(origParts[i]);
+						sb.Append(origParts[i].EndsWith(":") ? "\\\\" : "\\");
 					}
-					
-					long pos = fs.Position;
-					UInt32 len = reader.ReadUInt32();
-					fs.Seek(0x0C, SeekOrigin.Current);
-					UInt32 offset = reader.ReadUInt32();
-					fs.Seek(pos + offset, SeekOrigin.Begin);
-					int pathLen = (int)(pos + len - fs.Position - 2);
-					string originalPath = new string(reader.ReadChars(pathLen));
-					
-					return originalPath;
+
+                    for (int i = level; i < appParts.Length; i++)
+                    {
+						sb.Append(appParts[i]);
+						sb.Append('\\');
+					}
+
+					sb.Remove(sb.Length - 1, 1);
+
+					appPath = sb.ToString();
 				}
 			}
-			*/
+
+			string args = data.Arguments?.Str;
+
+			string icoPath = data.IconLocation?.Str;
+
+			if (icoPath != null && icoPath.Contains("%"))
+				icoPath = Environment.ExpandEnvironmentVariables(icoPath);
+
+			return new string[] { appPath, args, icoPath };
 		}
 		
 		
@@ -147,7 +190,7 @@ namespace JoyLaunch
 							if(multi.Length > 0)
 							{
 								lvi.SubItems[columnindex].Text = multi[0];
-								localGames[lvi.Index.ToString()] = new GameInfo(lvi.SubItems[0].Text, lvi.SubItems[1].Text, lvi.SubItems[2].Text);
+								localGames[lvi.Index.ToString()] = new GameInfo(lvi.SubItems[0].Text, lvi.SubItems[1].Text, lvi.SubItems[2].Text, lvi.SubItems[3].Text);
 							}
 						}
 					}

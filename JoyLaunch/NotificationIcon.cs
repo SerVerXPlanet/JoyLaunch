@@ -226,6 +226,7 @@ namespace JoyLaunch
                 
                 ProcessStartInfo psi = new ProcessStartInfo();
                 psi.WorkingDirectory = fi.DirectoryName;
+                psi.Arguments = currentGame.Args;
                 psi.FileName = fi.Name;
                 try
                 {
@@ -283,13 +284,13 @@ namespace JoyLaunch
         {
             var gameList = new Dictionary<string, GameInfo>();
             var whiteSpaces = new char[] {'\r', '\n', '\t'};
-            string[] multiLine = text.Split(whiteSpaces, StringSplitOptions.RemoveEmptyEntries);
+            string[] multiLine = text.Trim().Split(whiteSpaces, StringSplitOptions.RemoveEmptyEntries);
             string[] multiStr;
             
             foreach(var str in multiLine)
             {
                 multiStr = str.Split(';');
-                gameList.Add(multiStr[0], new GameInfo(multiStr[1], multiStr[2], multiStr[3]));
+                gameList.Add(multiStr[0], new GameInfo(multiStr[1], multiStr[2], multiStr[3], multiStr[4]));
             }
             
             return gameList;

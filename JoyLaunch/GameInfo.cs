@@ -17,19 +17,21 @@ namespace JoyLaunch
 		public string Logo;
 		public string Name;
 		public string Path;
-		
-		
-		public GameInfo(string logo, string name, string path)
+		public string Args;
+
+
+		public GameInfo(string logo, string name, string path, string args)
 		{
 			Logo = logo;
 			Name = name;
 			Path = path;
+			Args = args;
 		}
 		
 		
 		public override string ToString()
 		{
-			return String.Format("{0};{1};{2}", Logo, Name, Path);
+			return String.Format("{0};{1};{2};{3}", Logo, Name, Path, Args);
 		}
 		
 		
