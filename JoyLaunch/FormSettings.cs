@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using Kaitai;
 
 
 namespace JoyLaunch
@@ -83,6 +84,10 @@ namespace JoyLaunch
 		
 		string GetFullPathFromLink(FileInfo fi)
 		{
+			var data = WindowsLnkFile.FromFile(fi.FullName);
+
+
+			/*
 			using (var fs = File.Open(fi.FullName, FileMode.Open, FileAccess.Read))
 			{
 				using (var reader = new BinaryReader(fs))
@@ -108,6 +113,7 @@ namespace JoyLaunch
 					return originalPath;
 				}
 			}
+			*/
 		}
 		
 		

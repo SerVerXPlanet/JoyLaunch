@@ -39,7 +39,7 @@ namespace JoyLaunch
         
         public NotificationIcon()
         {
-            string settings = Properties.Settings.Default.list_of_games;
+            string settings = Properties.Settings.Default.settings;
             games = DeserializeGameList(settings);
             
             notifyIcon = new NotifyIcon();
@@ -205,7 +205,7 @@ namespace JoyLaunch
             
             notificationLeftMenu = new ContextMenu(InitializeLeftMenu());
             
-            Properties.Settings.Default.list_of_games = SerializeGameList(games);
+            Properties.Settings.Default.settings = SerializeGameList(games);
             Properties.Settings.Default.Save();
         }
         
