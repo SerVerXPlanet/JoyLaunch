@@ -108,21 +108,34 @@ namespace JoyLaunch
 			if (appPath == null)
 				appPath = data.Name?.Str;
 
-			if (appPath != null)
+			appPath = GetInstantFullPath(appPath, fi.FullName);
+
+			string args = data.Arguments?.Str;
+
+			string icoPath = data.IconLocation?.Str;
+
+			icoPath = GetInstantFullPath(icoPath, fi.FullName);
+
+			return new string[] { appPath, args, icoPath };
+		}
+
+
+		string GetInstantFullPath(string path, string originalPath)
+        {
+			string resultPath = path;
+
+			if (path != null)
 			{
-				if (appPath.StartsWith("@"))
-					appPath = appPath.TrimStart('@');
+				if (resultPath.StartsWith("@"))
+					resultPath = resultPath.TrimStart('@');
 
-				if (appPath.Contains(","))
-					appPath = appPath.Split(',')[0];
+				if (resultPath.Contains(","))
+					resultPath = resultPath.Split(',')[0];
 
-				if (appPath.Contains("%"))
-					appPath = Environment.ExpandEnvironmentVariables(appPath);
-
-				if (appPath.Contains("..\\"))
+				if (resultPath.StartsWith(".."))
 				{
-					string[] appParts = appPath.Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
-					string[] origParts = fi.FullName.Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+					string[] appParts = resultPath.Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+					string[] origParts = originalPath.Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
 
 					int level = 0;
 
@@ -131,32 +144,28 @@ namespace JoyLaunch
 
 					StringBuilder sb = new StringBuilder();
 
-                    for (int i = 0; i < origParts.Length - level - 1; i++)
-                    {
+					for (int i = 0; i < origParts.Length - level - 1; i++)
+					{
 						sb.Append(origParts[i]);
 						sb.Append(origParts[i].EndsWith(":") ? "\\\\" : "\\");
 					}
 
-                    for (int i = level; i < appParts.Length; i++)
-                    {
+					for (int i = level; i < appParts.Length; i++)
+					{
 						sb.Append(appParts[i]);
 						sb.Append('\\');
 					}
 
 					sb.Remove(sb.Length - 1, 1);
 
-					appPath = sb.ToString();
+					resultPath = sb.ToString();
 				}
+
+				if (resultPath.Contains("%"))
+					resultPath = Environment.ExpandEnvironmentVariables(resultPath);
 			}
 
-			string args = data.Arguments?.Str;
-
-			string icoPath = data.IconLocation?.Str;
-
-			if (icoPath != null && icoPath.Contains("%"))
-				icoPath = Environment.ExpandEnvironmentVariables(icoPath);
-
-			return new string[] { appPath, args, icoPath };
+			return resultPath;
 		}
 		
 		
