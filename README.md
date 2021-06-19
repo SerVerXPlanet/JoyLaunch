@@ -66,7 +66,7 @@ cd YOUR_DIR_WITH_PROJECTS
 git clone https://github.com/SerVerXPlanet/JoyLaunch.git
 cd JoyLaunch
 mkdir packages
-nuget.exe install JoyLaunch\packages.config
+nuget.exe install JoyLaunch\packages.config -OutputDirectory packages
 "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" JoyLaunch.sln /property:Configuration=Release
 cd JoyLaunch\bin\Release
 ```
