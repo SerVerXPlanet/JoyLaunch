@@ -59,6 +59,9 @@ _v.1.0.0.0_
 - [NuGet](https://dist.nuget.org/win-x86-commandline/latest/nuget.exe)
 
 ```sh
+vs_buildtools__XXXXX.exe --add Microsoft.VisualStudio.Workload.MSBuildTools --layout c:\offlineBuildTool
+cd c:\offlineBuildTool
+vs_setup.exe
 git clone https://github.com/SerVerXPlanet/JoyLaunch.git
 cd JoyLaunch
 mkdir packages
