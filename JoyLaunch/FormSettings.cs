@@ -246,6 +246,7 @@ namespace JoyLaunch
 						if (filePath != string.Empty)
 						{
 							lvi.SubItems[columnindex].Text = filePath;
+							localGames[lvi.Index.ToString()] = new GameInfo(lvi.SubItems[0].Text, lvi.SubItems[1].Text, lvi.SubItems[2].Text, lvi.SubItems[3].Text);
 						}
 					}
 				}
@@ -259,18 +260,15 @@ namespace JoyLaunch
 			
 			ListViewHitTestInfo hit = lbGames.HitTest(e.Location);
 			    
-			//string columnName = "";
-		    
 			if(hit.Item != null)
 			{
 				int columnindex = hit.Item.SubItems.IndexOf(hit.SubItem);
-				//columnName = lbGames.Columns[columnindex].Text;
-				
-				using(Input inputForm = new Input(lvi.SubItems[columnindex].Text))
+				//string columnName = lbGames.Columns[columnindex].Text;
+
+				using (Input inputForm = new Input(lvi.SubItems[columnindex].Text))
 				{
 					inputForm.StartPosition = FormStartPosition.Manual;
 					inputForm.Location = new Point(Cursor.Position.X - inputForm.Width / 4, Cursor.Position.Y - inputForm.Height / 4);
-					//inputForm.Location = new Point(Cursor.Position.X - 40, Cursor.Position.Y - 10);
 					var rez = inputForm.ShowDialog();
 					
 					if(rez == DialogResult.OK)
