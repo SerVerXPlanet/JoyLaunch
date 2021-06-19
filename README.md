@@ -53,15 +53,25 @@ _v.1.0.0.0_
 
 ### How to compile
 
-#### required tools:
+#### in Microsoft Visual Studio Community 2019:
+
+open project and build
+
+#### or
+
+#### without IDE:
+
+##### required tools:
 - [Git](http://git-scm.com/download/win)
 - [Build Tools for Visual Studio 2019](https://visualstudio.microsoft.com/ru/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16)
 - [NuGet](https://dist.nuget.org/win-x86-commandline/latest/nuget.exe)
+- [.NET Framework 4.5.2 Developer Pack](https://dotnet.microsoft.com/download/dotnet-framework/thank-you/net452-developer-pack-offline-installer)
 
 ```sh
 vs_buildtools__XXXXX.exe --add Microsoft.VisualStudio.Workload.MSBuildTools --layout c:\offlineBuildTool
 cd c:\offlineBuildTool
 vs_setup.exe
+NDP452-KB2901951-x86-x64-DevPack.exe
 cd YOUR_DIR_WITH_PROJECTS
 git clone https://github.com/SerVerXPlanet/JoyLaunch.git
 cd JoyLaunch
