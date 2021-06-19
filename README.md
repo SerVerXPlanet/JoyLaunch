@@ -62,6 +62,7 @@ _v.1.0.0.0_
 vs_buildtools__XXXXX.exe --add Microsoft.VisualStudio.Workload.MSBuildTools --layout c:\offlineBuildTool
 cd c:\offlineBuildTool
 vs_setup.exe
+cd YOUR_DIR_WITH_PROJECTS
 git clone https://github.com/SerVerXPlanet/JoyLaunch.git
 cd JoyLaunch
 mkdir packages
