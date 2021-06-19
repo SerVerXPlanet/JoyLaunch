@@ -71,17 +71,34 @@ open project and build
 - [NuGet](https://dist.nuget.org/win-x86-commandline/latest/nuget.exe)
 - [.NET Framework 4.5.2 Developer Pack](https://dotnet.microsoft.com/download/dotnet-framework/thank-you/net452-developer-pack-offline-installer)
 
-```sh
+```cmd
+:: Install build tools
 vs_buildtools__XXXXX.exe --add Microsoft.VisualStudio.Workload.MSBuildTools --layout c:\offlineBuildTool
 cd c:\offlineBuildTool
 vs_setup.exe
+
+:: Install .Net SDK if required
 NDP452-KB2901951-x86-x64-DevPack.exe
+
+:: Go to any directory
 cd YOUR_DIR_WITH_PROJECTS
+
+:: Clone repo
 git clone https://github.com/SerVerXPlanet/JoyLaunch.git
+
+:: Go to project
 cd JoyLaunch
+
+:: Create directory for outside packages
 mkdir packages
-nuget.exe install JoyLaunch\packages.config -OutputDirectory packages
+
+:: Get necessary packages
+YOUR_DIR_WITH_NUGET\nuget.exe install JoyLaunch\packages.config -OutputDirectory packages
+
+:: Build binaries
 "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" JoyLaunch.sln /property:Configuration=Release
+
+:: Go to our program
 cd JoyLaunch\bin\Release
 ```
 
