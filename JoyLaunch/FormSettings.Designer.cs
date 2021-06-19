@@ -18,12 +18,13 @@ namespace JoyLaunch
 		private System.Windows.Forms.ColumnHeader columnHeader1;
 		private System.Windows.Forms.ColumnHeader columnHeader2;
 		private System.Windows.Forms.ColumnHeader columnHeader3;
-		
-		/// <summary>
-		/// Disposes resources used by the form.
-		/// </summary>
-		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-		protected override void Dispose(bool disposing)
+        private System.Windows.Forms.ColumnHeader columnHeader4;
+
+        /// <summary>
+        /// Disposes resources used by the form.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
 		{
 			if (disposing) {
 				if (components != null) {
@@ -60,8 +61,10 @@ namespace JoyLaunch
             this.columnHeader2,
             this.columnHeader3,
             this.columnHeader4});
+            this.lbGames.Cursor = System.Windows.Forms.Cursors.Default;
             this.lbGames.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lbGames.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.lbGames.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.lbGames.ForeColor = System.Drawing.Color.Yellow;
             this.lbGames.FullRowSelect = true;
             this.lbGames.GridLines = true;
             this.lbGames.HideSelection = false;
@@ -74,6 +77,8 @@ namespace JoyLaunch
             this.lbGames.View = System.Windows.Forms.View.Details;
             this.lbGames.DragDrop += new System.Windows.Forms.DragEventHandler(this.lbGamesDragDrop);
             this.lbGames.DragEnter += new System.Windows.Forms.DragEventHandler(this.lbGamesDragEnter);
+            this.lbGames.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lbGames_KeyDown);
+            this.lbGames.MouseClick += new System.Windows.Forms.MouseEventHandler(this.lbGames_MouseClick);
             this.lbGames.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.LbGamesMouseDoubleClick);
             // 
             // columnHeader1
@@ -111,6 +116,5 @@ namespace JoyLaunch
 
 		}
 
-        private System.Windows.Forms.ColumnHeader columnHeader4;
     }
 }

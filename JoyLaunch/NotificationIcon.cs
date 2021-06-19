@@ -48,7 +48,6 @@ namespace JoyLaunch
             
             notifyIcon.ContextMenu = notificationRightMenu;
             
-            //notifyIcon.Click += IconClick;                                  
             notifyIcon.MouseClick += new MouseEventHandler(this.IconClick);
             
             notifyIcon.Icon = (Icon)resources.GetObject("Joystick");
@@ -63,7 +62,21 @@ namespace JoyLaunch
             
             foreach(var game in games)
             {
-                menu[i] = new MenuItem(game.Value.Name, menuGameClick);
+                MenuItem menuItem;
+
+                if (game.Value.Name == "-")
+                {
+                    menuItem = new MenuItem("-");
+                }
+                else
+                {
+                    menuItem = new MenuItem(game.Value.Name, menuGameClick);
+                    menuItem.OwnerDraw = true;
+                    menuItem.DrawItem += menu_DrawItem;
+                    menuItem.MeasureItem += menu_MeasureItem;
+                }
+
+                menu[i] = menuItem;
                 i++;
             }
             
@@ -75,13 +88,13 @@ namespace JoyLaunch
         {
             var menuSettings = new MenuItem("Settings" , menuSettingsClick);
             menuSettings.OwnerDraw = true;
-            menuSettings.DrawItem += menuSettings_DrawItem;
-            menuSettings.MeasureItem += menuSettings_MeasureItem;
+            menuSettings.DrawItem += menu_DrawItem;
+            menuSettings.MeasureItem += menu_MeasureItem;
             
             var menuExit = new MenuItem("Exit" , menuExitClick);
             menuExit.OwnerDraw = true;
-            menuExit.DrawItem += menuExit_DrawItem;
-            menuExit.MeasureItem += menuExit_MeasureItem;
+            menuExit.DrawItem += menu_DrawItem;
+            menuExit.MeasureItem += menu_MeasureItem;
             
             MenuItem[] menu = new MenuItem[] {
                 menuSettings,
@@ -93,30 +106,67 @@ namespace JoyLaunch
         }
         
         
-        void menuSettings_DrawItem(object sender, DrawItemEventArgs e)
+        void menu_DrawItem(object sender, DrawItemEventArgs e)
         {
             MenuDrawItem(sender, e);
         }
         
         
-        void menuSettings_MeasureItem(object sender, MeasureItemEventArgs e)
+        void menu_MeasureItem(object sender, MeasureItemEventArgs e)
         {
             MenuMeasureItem(sender, e);
         }
-        
-        
-        void menuExit_DrawItem(object sender, DrawItemEventArgs e)
+
+
+        Image GetIcon(MenuItem menu)
         {
-            MenuDrawItem(sender, e);
+            Image img = (Bitmap)resources.GetObject(menu.Text);
+
+            if (img == null)
+            {
+                var currentGame = games[menu.Index.ToString()];
+
+                if (File.Exists(currentGame.Logo))
+                {
+                    FileInfo fi = new FileInfo(currentGame.Logo);
+                    string ext = fi.Extension.ToLower();
+                    Bitmap bmp = null;
+
+                    if (ext == ".exe")
+                    {
+                        Icon ic = Icon.ExtractAssociatedIcon(fi.FullName);
+                        bmp = ic.ToBitmap();
+                    }
+                    else if(ext == ".png" || ext == ".jpg" || ext == ".gif" || ext == ".ico" || ext == ".tif" || ext == ".bmp")
+                    {
+                        try
+                        {
+                            bmp = new Bitmap(fi.FullName);
+                        }
+                        catch { }
+                    }
+
+                    if(bmp != null)
+                    {
+                        if (bmp.Width != 16 || bmp.Height != 16)
+                        {
+                            bmp = new Bitmap(bmp, new Size(16, 16));
+                        }
+
+                        img = bmp;
+                    }
+                }
+            }
+
+            if (img == null)
+            {
+                img = (Bitmap)resources.GetObject("App");
+            }
+
+            return img;
         }
         
-        
-        void menuExit_MeasureItem(object sender, MeasureItemEventArgs e)
-        {
-            MenuMeasureItem(sender, e);
-        }
-        
-        
+
         void MenuDrawItem(object obj, DrawItemEventArgs diea)
         {
             var mi = (MenuItem)obj;
@@ -126,24 +176,24 @@ namespace JoyLaunch
             menuBrush = !mi.Enabled ? new SolidBrush(SystemColors.GrayText) : (diea.State & DrawItemState.Selected) != 0 ? new SolidBrush(SystemColors.HighlightText) : new SolidBrush(SystemColors.MenuText);
             
             var strfmt = new StringFormat();
-            
-            Image menuImage = (Bitmap)resources.GetObject(((MenuItem)obj).Text);
-            
+
+            Image menuImage = GetIcon(mi);
+
             Rectangle rectImage = diea.Bounds;
             int delta = (diea.Bounds.Height - menuImage.Height) / 2;
             rectImage.X += delta;
             rectImage.Y += delta;
             rectImage.Width = menuImage.Width;
             rectImage.Height = menuImage.Height;
-            
+
             Rectangle rectText = diea.Bounds;
             rectText.X += rectImage.Width;
-            
+
             diea.Graphics.FillRectangle((diea.State & DrawItemState.Selected) != 0 ? SystemBrushes.Highlight : SystemBrushes.Menu, diea.Bounds);
-            
+
             diea.Graphics.DrawImage(menuImage, rectImage);
-            
-            diea.Graphics.DrawString( mi.Text, menuFont, menuBrush, diea.Bounds.Left + (int)(1.3 * menuImage.Width), diea.Bounds.Top + ((diea.Bounds.Height - menuFont.Height) / 2), strfmt ) ;
+
+            diea.Graphics.DrawString(mi.Text, menuFont, menuBrush, diea.Bounds.Left + (int)(1.3 * menuImage.Width), diea.Bounds.Top + ((diea.Bounds.Height - menuFont.Height) / 2), strfmt);
         }
         
         
@@ -153,8 +203,10 @@ namespace JoyLaunch
             var menuFont = SystemInformation.MenuFont;
             var strfmt = new StringFormat();
             var sizef = miea.Graphics.MeasureString(mi.Text, menuFont, 300, strfmt);
-            Image menuImage = (Bitmap)resources.GetObject(((MenuItem)obj).Text);
-            miea.ItemWidth  = menuImage.Width + (int)Math.Ceiling(sizef.Width);
+
+            Image menuImage = GetIcon(mi);
+
+            miea.ItemWidth = menuImage.Width + (int)Math.Ceiling(sizef.Width);
             miea.ItemHeight = menuImage.Height + 3;//(int)Math.Ceiling(sizef.Height); // 19 px is standard height
         }
         
