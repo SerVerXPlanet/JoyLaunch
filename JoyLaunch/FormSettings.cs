@@ -324,12 +324,15 @@ namespace JoyLaunch
 						localGames.Remove(i.ToString());
 					}
 
-					int newIndex = Math.Min(index, lbGames.Items.Count - 1);
+					if (lbGames.Items.Count > 0)
+					{
+						int newIndex = Math.Min(index, lbGames.Items.Count - 1);
 
-					lbGames.FocusedItem = lbGames.Items[newIndex];
-					lbGames.Items[newIndex].Selected = true;
-					lbGames.Items[newIndex].Focused = true;
-					lbGames.EnsureVisible(newIndex);
+						lbGames.FocusedItem = lbGames.Items[newIndex];
+						lbGames.Items[newIndex].Selected = true;
+						lbGames.Items[newIndex].Focused = true;
+						lbGames.EnsureVisible(newIndex);
+					}
 				}
 			}
 			else if (e.KeyCode == Keys.Insert)
