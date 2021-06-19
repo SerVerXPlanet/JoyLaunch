@@ -53,10 +53,19 @@ _v.1.0.0.0_
 
 ### How to compile
 
-- git clone https://github.com/SerVerXPlanet/JoyLaunch.git
-- cd JoyLaunch
-- %windir%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe JoyLaunch.sln /property:Configuration=Release
-- cd JoyLaunch\bin\Release
+#### required tools:
+- [Git](http://git-scm.com/download/win)
+- [Build Tools for Visual Studio 2019](https://visualstudio.microsoft.com/ru/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16)
+- [NuGet](https://dist.nuget.org/win-x86-commandline/latest/nuget.exe)
+
+```sh
+git clone https://github.com/SerVerXPlanet/JoyLaunch.git
+cd JoyLaunch
+mkdir packages
+nuget.exe install JoyLaunch\packages.config
+"%ProgramFiles(x86)%\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" JoyLaunch.sln /property:Configuration=Release
+cd JoyLaunch\bin\Release
+```
 
 &nbsp;
 
