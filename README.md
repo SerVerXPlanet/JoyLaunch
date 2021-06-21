@@ -1,6 +1,6 @@
 ## JoyLaunch
 
-### _Starter for games (programs) [at Win tray]_
+### _Starter for games/programs with customizable menu (at Win tray)_
 
 &nbsp;
 
@@ -20,7 +20,7 @@ _Settings_
 
 &nbsp;
 
-#### Изменения:
+#### Changes:
 
 _v.1.0.3.0_
 
