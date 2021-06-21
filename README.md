@@ -112,9 +112,4 @@ cd JoyLaunch\bin\Release
 
 &nbsp;
 
-### License
-[MIT](https://github.com/git/git-scm.com/blob/main/MIT-LICENSE.txt)
-
-&nbsp;
-
 **Free Software, enjoy!**
