@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
@@ -29,14 +30,17 @@ namespace JoyLaunch
         ContextMenu notificationRightMenu;
         
         Dictionary<string,GameInfo> games = new Dictionary<string,GameInfo>();
-        
+
+        const char separator = ';';
+        const int iconSize = 16;
+
         #endregion Variables
-        
-        
-        
-        
+
+
+
+
         #region Initialize icon and menu
-        
+
         public NotificationIcon()
         {
             string settings = Properties.Settings.Default.settings;
@@ -148,12 +152,15 @@ namespace JoyLaunch
 
                     if(bmp != null)
                     {
-                        if (bmp.Width != 16 || bmp.Height != 16)
-                        {
-                            bmp = new Bitmap(bmp, new Size(16, 16));
-                        }
+                        img = new Bitmap(iconSize, iconSize);
 
-                        img = bmp;
+                        using (Graphics gr = Graphics.FromImage(img))
+                        {
+                            gr.SmoothingMode = SmoothingMode.HighQuality;
+                            gr.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                            gr.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                            gr.DrawImage((Image)bmp, new Rectangle(0, 0, iconSize, iconSize));
+                        }
                     }
                 }
             }
@@ -323,7 +330,7 @@ namespace JoyLaunch
             foreach(var game in gameList)
             {
                 result.Append(game.Key);
-                result.Append(';');
+                result.Append(separator);
                 result.Append(game.Value.ToString());
                 result.AppendLine();
             }
@@ -341,7 +348,7 @@ namespace JoyLaunch
             
             foreach(var str in multiLine)
             {
-                multiStr = str.Split(';');
+                multiStr = str.Split(separator);
                 gameList.Add(multiStr[0], new GameInfo(multiStr[1], multiStr[2], multiStr[3], multiStr[4]));
             }
             

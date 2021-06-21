@@ -20,9 +20,15 @@ namespace JoyLaunch
 	/// </summary>
 	public partial class FormSettings : Form
 	{
+		#region Variables
+
 		Dictionary<string,GameInfo> localGames;
-		
-		
+
+		#endregion Variables
+
+
+		#region Ctor
+
 		public FormSettings(Dictionary<string,GameInfo> games)
 		{
 			InitializeComponent();
@@ -34,8 +40,12 @@ namespace JoyLaunch
 
 			RefreshListGames();
 		}
-		
-		
+
+		#endregion Ctor
+
+
+		#region Events
+
 		void lbGamesDragEnter(object sender, DragEventArgs e)
 		{
 			if (e.Data.GetDataPresent(DataFormats.FileDrop, false) == true)
@@ -45,29 +55,10 @@ namespace JoyLaunch
 		}
 
 
-		void RefreshListGames()
-        {
-			lbGames.Items.Clear();
-
-			foreach (var game in localGames)
-			{
-				string[] arr = new string[4];
-				arr[0] = game.Value.Logo;
-				arr[1] = game.Value.Name;
-				arr[2] = game.Value.Path;
-				arr[3] = game.Value.Args;
-
-				ListViewItem itm = new ListViewItem(arr);
-
-				lbGames.Items.Add(itm);
-			}
-		}
-		
-		
 		void lbGamesDragDrop(object sender, DragEventArgs e)
 		{
 			string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
- 
+
 			foreach (string file in files)
 			{
 				FileInfo fi = new FileInfo(file);
@@ -103,6 +94,170 @@ namespace JoyLaunch
 			}
 
 			RefreshListGames();
+
+			int newIndex = lbGames.Items.Count - 1;
+			lbGames.FocusedItem = lbGames.Items[newIndex];
+			lbGames.Items[newIndex].Selected = true;
+			lbGames.Items[newIndex].Focused = true;
+			lbGames.EnsureVisible(newIndex);
+		}
+
+
+		private void lbGames_MouseClick(object sender, MouseEventArgs e)
+		{
+			if (e.Button == MouseButtons.Right)
+			{
+				var lvi = ((ListView)(sender)).FocusedItem;
+
+				ListViewHitTestInfo hit = lbGames.HitTest(e.Location);
+
+				if (hit.Item != null)
+				{
+					int columnindex = hit.Item.SubItems.IndexOf(hit.SubItem);
+
+					if (columnindex == 0 || columnindex == 2) // logo || name
+					{
+						var filePath = string.Empty;
+
+						using (OpenFileDialog openFileDialog = new OpenFileDialog())
+						{
+							if (columnindex == 0)
+							{
+								openFileDialog.Filter = "images or programs|*.png;*.jpg;*.gif;*.ico;*.tif;*.bmp;*.exe";
+							}
+							else if (columnindex == 2)
+							{
+								openFileDialog.Filter = "executable files|*.exe;*.bat;*.cmd;*.scr;*.js;*.vbs;*.jar;*.hta";
+							}
+
+							openFileDialog.RestoreDirectory = true;
+
+							if (openFileDialog.ShowDialog() == DialogResult.OK)
+							{
+								filePath = openFileDialog.FileName;
+							}
+						}
+
+						if (filePath != string.Empty)
+						{
+							lvi.SubItems[columnindex].Text = filePath;
+							localGames[lvi.Index.ToString()] = new GameInfo(lvi.SubItems[0].Text, lvi.SubItems[1].Text, lvi.SubItems[2].Text, lvi.SubItems[3].Text);
+						}
+					}
+				}
+			}
+		}
+
+
+		void LbGamesMouseDoubleClick(object sender, MouseEventArgs e)
+		{
+			var lvi = ((ListView)(sender)).FocusedItem;
+
+			ListViewHitTestInfo hit = lbGames.HitTest(e.Location);
+
+			if (hit.Item != null)
+			{
+				int columnindex = hit.Item.SubItems.IndexOf(hit.SubItem);
+				//string columnName = lbGames.Columns[columnindex].Text;
+
+				using (Input inputForm = new Input(lvi.SubItems[columnindex].Text))
+				{
+					inputForm.StartPosition = FormStartPosition.Manual;
+					inputForm.Location = new Point(Cursor.Position.X - inputForm.Width / 4, Cursor.Position.Y - inputForm.Height / 4);
+					var rez = inputForm.ShowDialog();
+
+					if (rez == DialogResult.OK)
+					{
+						if (inputForm.TextBoxValue != "")
+						{
+							string[] multi = inputForm.TextBoxValue.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+
+							if (multi.Length > 0)
+							{
+								lvi.SubItems[columnindex].Text = multi[0];
+								localGames[lvi.Index.ToString()] = new GameInfo(lvi.SubItems[0].Text, lvi.SubItems[1].Text, lvi.SubItems[2].Text, lvi.SubItems[3].Text);
+							}
+						}
+					}
+				}
+			}
+		}
+
+
+		private void lbGames_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.Modifiers == Keys.Control)
+			{
+				if ((e.KeyCode == Keys.Up))
+				{
+					ExchangeItems(((ListView)(sender)).FocusedItem, -1);
+				}
+				else if (e.KeyCode == Keys.Down)
+				{
+					ExchangeItems(((ListView)(sender)).FocusedItem, 1);
+				}
+				else if (e.KeyCode == Keys.Insert)
+				{
+					InsertItem(true);
+				}
+			}
+			else if (e.KeyCode == Keys.Delete)
+			{
+				var lvi = ((ListView)(sender)).FocusedItem;
+
+				if (lvi != null)
+				{
+					int index = lvi.Index;
+
+					localGames.Remove(index.ToString());
+					lvi.Remove();
+
+					for (int i = index + 1; i <= localGames.Count; i++)
+					{
+						var element = localGames[i.ToString()];
+						localGames.Add((i - 1).ToString(), element);
+						localGames.Remove(i.ToString());
+					}
+
+					if (lbGames.Items.Count > 0)
+					{
+						int newIndex = Math.Min(index, lbGames.Items.Count - 1);
+
+						lbGames.FocusedItem = lbGames.Items[newIndex];
+						lbGames.Items[newIndex].Selected = true;
+						lbGames.Items[newIndex].Focused = true;
+						lbGames.EnsureVisible(newIndex);
+					}
+				}
+			}
+			else if (e.KeyCode == Keys.Insert)
+			{
+				InsertItem(false);
+			}
+
+		}
+
+		#endregion Events
+
+
+		#region UtilityMethods
+
+		void RefreshListGames()
+        {
+			lbGames.Items.Clear();
+
+			foreach (var game in localGames)
+			{
+				string[] arr = new string[4];
+				arr[0] = game.Value.Logo;
+				arr[1] = game.Value.Name;
+				arr[2] = game.Value.Path;
+				arr[3] = game.Value.Args;
+
+				var itm = new ListViewItem(arr);
+
+				lbGames.Items.Add(itm);
+			}
 		}
 		
 		
@@ -208,140 +363,6 @@ namespace JoyLaunch
 			}
 		}
 
-		private void lbGames_MouseClick(object sender, MouseEventArgs e)
-		{
-			if (e.Button == MouseButtons.Right)
-			{
-				var lvi = ((ListView)(sender)).FocusedItem;
-
-				ListViewHitTestInfo hit = lbGames.HitTest(e.Location);
-
-				if (hit.Item != null)
-				{
-					int columnindex = hit.Item.SubItems.IndexOf(hit.SubItem);
-
-					if (columnindex == 0 || columnindex == 2) // logo || name
-                    {
-						var filePath = string.Empty;
-
-						using (OpenFileDialog openFileDialog = new OpenFileDialog())
-						{
-							if(columnindex == 0)
-                            {
-								openFileDialog.Filter = "images|*.png;*.jpg;*.gif;*.ico;*.tif;*.bmp";
-							}
-							else if (columnindex == 2)
-							{
-								openFileDialog.Filter = "program|*.exe";
-							}
-
-							openFileDialog.RestoreDirectory = true;
-
-							if (openFileDialog.ShowDialog() == DialogResult.OK)
-							{
-								filePath = openFileDialog.FileName;
-							}
-						}
-
-						if (filePath != string.Empty)
-						{
-							lvi.SubItems[columnindex].Text = filePath;
-							localGames[lvi.Index.ToString()] = new GameInfo(lvi.SubItems[0].Text, lvi.SubItems[1].Text, lvi.SubItems[2].Text, lvi.SubItems[3].Text);
-						}
-					}
-				}
-			}
-		}
-
-
-		void LbGamesMouseDoubleClick(object sender, MouseEventArgs e)
-		{
-			var lvi = ((ListView)(sender)).FocusedItem;
-			
-			ListViewHitTestInfo hit = lbGames.HitTest(e.Location);
-			    
-			if(hit.Item != null)
-			{
-				int columnindex = hit.Item.SubItems.IndexOf(hit.SubItem);
-				//string columnName = lbGames.Columns[columnindex].Text;
-
-				using (Input inputForm = new Input(lvi.SubItems[columnindex].Text))
-				{
-					inputForm.StartPosition = FormStartPosition.Manual;
-					inputForm.Location = new Point(Cursor.Position.X - inputForm.Width / 4, Cursor.Position.Y - inputForm.Height / 4);
-					var rez = inputForm.ShowDialog();
-					
-					if(rez == DialogResult.OK)
-					{
-						if(inputForm.TextBoxValue != "")
-						{
-							string[] multi = inputForm.TextBoxValue.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-							
-							if(multi.Length > 0)
-							{
-								lvi.SubItems[columnindex].Text = multi[0];
-								localGames[lvi.Index.ToString()] = new GameInfo(lvi.SubItems[0].Text, lvi.SubItems[1].Text, lvi.SubItems[2].Text, lvi.SubItems[3].Text);
-							}
-						}
-					}
-				}
-			}
-		}
-
-
-        private void lbGames_KeyDown(object sender, KeyEventArgs e)
-        {
-			if (e.Modifiers == Keys.Control)
-			{
-				if ((e.KeyCode == Keys.Up))
-				{
-					ExchangeItems(((ListView)(sender)).FocusedItem, -1);
-				}
-				else if (e.KeyCode == Keys.Down)
-				{
-					ExchangeItems(((ListView)(sender)).FocusedItem, 1);
-				}
-				else if(e.KeyCode == Keys.Insert)
-				{
-					InsertItem(true);
-				}
-			}
-			else if (e.KeyCode == Keys.Delete)
-			{
-				var lvi = ((ListView)(sender)).FocusedItem;
-
-				if (lvi != null)
-				{
-					int index = lvi.Index;
-
-					localGames.Remove(index.ToString());
-					lvi.Remove();
-
-					for (int i = index + 1; i <= localGames.Count; i++)
-					{
-						var element = localGames[i.ToString()];
-						localGames.Add((i - 1).ToString(), element);
-						localGames.Remove(i.ToString());
-					}
-
-					if (lbGames.Items.Count > 0)
-					{
-						int newIndex = Math.Min(index, lbGames.Items.Count - 1);
-
-						lbGames.FocusedItem = lbGames.Items[newIndex];
-						lbGames.Items[newIndex].Selected = true;
-						lbGames.Items[newIndex].Focused = true;
-						lbGames.EnsureVisible(newIndex);
-					}
-				}
-			}
-			else if (e.KeyCode == Keys.Insert)
-			{
-				InsertItem(false);
-			}
-
-		}
-
 
 		void InsertItem(bool isSeparator)
         {
@@ -397,11 +418,13 @@ namespace JoyLaunch
 				arr[i] = item.SubItems[i].Text;
 			}
 
-			ListViewItem newItem = new ListViewItem(arr);
+			var newItem = new ListViewItem(arr);
 
 			return newItem;
 		}
 
-        
-    }
+		#endregion UtilityMethods
+
+
+	}
 }
