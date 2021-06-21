@@ -4,6 +4,22 @@
 
 &nbsp;
 
+#### Screenshots:
+
+_LMB menu_
+
+![LMB](/screenshots/Screenshot_LMB.png)
+
+_RMB menu_
+
+![RMB](/screenshots/Screenshot_RMB.png)
+
+_Settings_
+
+![Settings](/screenshots/Screenshot_Settings.png)
+
+&nbsp;
+
 #### Изменения:
 
 _v.1.0.3.0_
